@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane
+        fx:id="root"
+        xmlns="http://javafx.com/javafx"
+        xmlns:fx="http://javafx.com/fxml"
+        fx:controller="net.crejak.bcc.MainController"
+>
+    <center>
+        <VBox>
+            <VBox>
+                <Label>Clock display for white</Label>
+                <ChoiceBox
+                        fx:id="monitorSelectorW"
+                        onAction="#onMonitorSelection"
+                />
+                <Label>Clock display for black</Label>
+                <ChoiceBox
+                        fx:id="monitorSelectorB"
+                        onAction="#onMonitorSelection"
+                />
+                <Label fx:id="monitorValidationLabel" />
+            </VBox>
+            <VBox>
+                <Label>Initial duration (minutes)</Label>
+                <TextField fx:id="initialDurationInput"/>
+                <Label>Additional duration (seconds)</Label>
+                <TextField fx:id="additionalDurationInput"/>
+                <Label fx:id="durationValidationLabel" />
+            </VBox>
+        </VBox>
+    </center>
+    <bottom>
+        <FlowPane>
+            <Label fx:id="informationLabel" />
+            <Button
+                fx:id="testButton"
+                onAction="#onTestButton"
+            >Test configuration</Button>
+            <Button
+                fx:id="startButton"
+                onAction="#onStartButton"
+            >Start</Button>
+        </FlowPane>
+    </bottom>
+</BorderPane>

@@ -5,4 +5,6 @@ module net.crejak.bcc {
 
     opens net.crejak.bcc to javafx.fxml;
     exports net.crejak.bcc;
+    exports net.crejak.bcc.model;
+    opens net.crejak.bcc.model to javafx.fxml;
 }
