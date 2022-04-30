@@ -20,10 +20,19 @@ public class ClockModel {
 
         pause = new SimpleBooleanProperty(true);
 
-        long initialTime = (long) configuration.getInitialDurationMinutes() * 60L * 1_000L;
+        long initialTime = configuration.getInitialDurationMinutes() * 60L * 1_000L;
         remainingTimeMillis = new HashMap<>();
         remainingTimeMillis.put(Color.WHITE, new SimpleLongProperty(initialTime));
         remainingTimeMillis.put(Color.BLACK, new SimpleLongProperty(initialTime));
+
+        long additionalTime = configuration.getAdditionalDurationSeconds() * 1_000L;
+        if (additionalTime > 0) {
+            currentColor.addListener((change, oldValue, newValue) -> {
+                if (oldValue != newValue) {
+                    remainingTimeMillis.get(oldValue).set(remainingTimeMillis.get(oldValue).get() + additionalTime);
+                }
+            });
+        }
 
         clockTask = new Task<>() {
             @Override
@@ -35,7 +44,8 @@ public class ClockModel {
                         var elapsedTime = currentTime - lastTime;
                         Platform.runLater(() -> {
                             var remainingTimeProperty = remainingTimeMillis.get(currentColor.getValue());
-                            remainingTimeProperty.set(remainingTimeProperty.get() - elapsedTime);
+                            var newTime = Math.max(remainingTimeProperty.get() - elapsedTime, 0);
+                            remainingTimeProperty.set(newTime);
                         });
                     }
                     lastTime = currentTime;

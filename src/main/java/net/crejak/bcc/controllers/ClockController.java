@@ -20,10 +20,17 @@ public class ClockController extends AbstractController implements Initializable
 
     private Color color;
 
+    private int sizePixels;
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        timerLabel.setStyle("-fx-font-size: 200pt");
+        sizePixels = 20;
+        pane.widthProperty().addListener((change, oldValue, newValue) -> {
+            System.out.println("Change : " + newValue);
+            sizePixels = newValue.intValue() / 4;
+            updateLabel(model.getClockModel().remainingTimeMillisProperty(color).get());
+        });
     }
 
     public void setColor(Color color) {
@@ -42,6 +49,18 @@ public class ClockController extends AbstractController implements Initializable
     private void updateLabel(long value) {
         var duration = Duration.ofMillis(value);
         timerLabel.setText(String.format("%d:%02d.%d", duration.toMinutes(), duration.toSecondsPart(), duration.toMillisPart() / 100));
+        updateLabelStyle(value);
+    }
+
+    private void updateLabelStyle(long value) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("-fx-font-size: ")
+                .append(sizePixels)
+                .append("px;");
+        if (value == 0) {
+            sb.append(" -fx-text-fill: red;");
+        }
+        timerLabel.setStyle(sb.toString());
     }
 
     private void updateInformationLabel() {
