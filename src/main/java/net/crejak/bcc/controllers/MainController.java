@@ -155,8 +155,6 @@ public class MainController extends AbstractController implements Initializable 
 
         openClockWindow(boundsW, Color.WHITE);
         openClockWindow(boundsB, Color.BLACK);
-
-        (root.getScene().getWindow()).hide();
     }
 
     private void openClockWindow(Rectangle2D bounds, Color color) throws IOException {
@@ -182,8 +180,6 @@ public class MainController extends AbstractController implements Initializable 
                 stageMap.get(Color.BLACK).close();
 
                 model.disposeClock();
-
-                ((Stage) root.getScene().getWindow()).show();
             }
             case SPACE -> {
                 if (model.getClockModel().isPause()) {
