@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <BorderPane
         fx:id="root"
         xmlns="http://javafx.com/javafx"
         xmlns:fx="http://javafx.com/fxml"
-        fx:controller="net.crejak.bcc.MainController"
+        fx:controller="net.crejak.bcc.controllers.MainController"
 >
+    <padding>
+        <Insets topRightBottomLeft="10" />
+    </padding>
     <center>
         <VBox>
             <VBox>
@@ -27,6 +27,11 @@
                 />
                 <Label fx:id="monitorValidationLabel" />
             </VBox>
+            <Separator>
+                <padding>
+                    <Insets top="5" bottom="5" />
+                </padding>
+            </Separator>
             <VBox>
                 <Label>Initial duration (minutes)</Label>
                 <TextField fx:id="initialDurationInput"/>
@@ -37,16 +42,13 @@
         </VBox>
     </center>
     <bottom>
-        <FlowPane>
-            <Label fx:id="informationLabel" />
-            <Button
-                fx:id="testButton"
-                onAction="#onTestButton"
-            >Test configuration</Button>
-            <Button
-                fx:id="startButton"
-                onAction="#onStartButton"
-            >Start</Button>
-        </FlowPane>
+        <BorderPane>
+            <center>
+                <Button
+                    fx:id="startButton"
+                    onAction="#onStartButton"
+                >Start</Button>
+            </center>
+        </BorderPane>
     </bottom>
 </BorderPane>

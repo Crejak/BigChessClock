@@ -1,29 +1,34 @@
 package net.crejak.bcc.model;
 
-import java.time.Duration;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 
 public class Configuration {
-    private Duration initialDuration;
-    private Duration additionalDuration;
 
-    public Configuration(Duration initialDuration, Duration additionalDuration) {
-        this.initialDuration = initialDuration;
-        this.additionalDuration = additionalDuration;
+    private IntegerProperty initialDurationMinutes;
+
+    private IntegerProperty additionalDurationSeconds;
+
+    public Configuration(int initialDurationMinutes, int additionalDurationSeconds) {
+        this.initialDurationMinutes = new SimpleIntegerProperty(initialDurationMinutes);
+        this.additionalDurationSeconds = new SimpleIntegerProperty(additionalDurationSeconds);
     }
 
-    public Duration getInitialDuration() {
-        return initialDuration;
+    public int getInitialDurationMinutes() {
+        return initialDurationMinutes.get();
     }
 
-    public void setInitialDuration(Duration initialDuration) {
-        this.initialDuration = initialDuration;
+    public IntegerProperty initialDurationMinutesProperty() {
+        return initialDurationMinutes;
     }
 
-    public Duration getAdditionalDuration() {
-        return additionalDuration;
+    public int getAdditionalDurationSeconds() {
+        return additionalDurationSeconds.get();
     }
 
-    public void setAdditionalDuration(Duration additionalDuration) {
-        this.additionalDuration = additionalDuration;
+    public IntegerProperty additionalDurationSecondsProperty() {
+        return additionalDurationSeconds;
     }
 }

@@ -1,4 +1,4 @@
-package net.crejak.bcc;
+package net.crejak.bcc.controllers;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -28,10 +28,7 @@ public class ClockController extends AbstractController implements Initializable
 
     public void setColor(Color color) {
         this.color = color;
-    }
 
-    @Override
-    protected void onModelSet() {
         model.getClockModel().remainingTimeMillisProperty(color).addListener((change, oldValue, newValue) -> {
             updateLabel((Long) newValue);
         });

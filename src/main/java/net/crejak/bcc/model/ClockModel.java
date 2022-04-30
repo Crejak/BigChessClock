@@ -21,7 +21,7 @@ public class ClockModel {
         whiteTurn = new SimpleBooleanProperty(true);
         pause = new SimpleBooleanProperty(true);
 
-        long initialTime = configuration.getInitialDuration().getSeconds() * 1000 + configuration.getInitialDuration().getNano() / 1_000_000;
+        long initialTime = (long) configuration.getInitialDurationMinutes() * 60L * 1_000L;
         remainingTimeMillisW = new SimpleLongProperty(initialTime);
         remainingTimeMillisB = new SimpleLongProperty(initialTime);
 

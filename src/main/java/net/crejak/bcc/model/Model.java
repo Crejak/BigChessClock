@@ -1,14 +1,17 @@
 package net.crejak.bcc.model;
 
 import java.time.Duration;
+import java.util.Objects;
 
 public class Model {
+    private static Model instance;
+
     private Configuration configuration;
 
     private ClockModel clockModel;
 
-    public Model() {
-        this.configuration = new Configuration(Duration.ofMinutes(15), Duration.ZERO);
+    private Model() {
+        this.configuration = new Configuration(15, 0);
     }
 
     public Configuration getConfiguration() {
@@ -27,5 +30,12 @@ public class Model {
     public void disposeClock() {
         clockModel.dispose();
         clockModel = null;
+    }
+
+    public static Model getInstance() {
+        if (Objects.isNull(instance)) {
+            instance = new Model();
+        }
+        return instance;
     }
 }

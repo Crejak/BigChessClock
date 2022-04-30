@@ -1,4 +1,4 @@
-package net.crejak.bcc;
+package net.crejak.bcc.controllers;
 
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -18,11 +18,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.crejak.bcc.controllers.bindings.SafeIntegerStringConverter;
 import net.crejak.bcc.model.Color;
 
 import java.io.IOException;
 import java.net.URL;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -34,11 +34,7 @@ public class MainController extends AbstractController implements Initializable 
     @FXML
     public ChoiceBox<String> monitorSelectorB;
     @FXML
-    public Label informationLabel;
-    @FXML
     public Button startButton;
-    @FXML
-    public Button testButton;
     @FXML
     public Label monitorValidationLabel;
     @FXML
@@ -72,25 +68,20 @@ public class MainController extends AbstractController implements Initializable 
         monitorSelectorW.setItems(screenSelectionList);
         monitorSelectorB.setItems(screenSelectionList);
 
-        monitorValidationLabel.managedProperty().bind(monitorValidationLabel.visibleProperty());
-        durationValidationLabel.managedProperty().bind(durationValidationLabel.visibleProperty());
-
         refreshScreenSelectionList();
 
-        validateMonitorSelection();
-
+        initialDurationInput.textProperty().bindBidirectional(
+                model.getConfiguration().initialDurationMinutesProperty().asObject(), new SafeIntegerStringConverter());
+        additionalDurationInput.textProperty().bindBidirectional(
+                model.getConfiguration().additionalDurationSecondsProperty().asObject(), new SafeIntegerStringConverter());
         initialDurationInput.textProperty().addListener((ChangeListener<? super String>) (c, o, n) -> {
             validate();
         });
         additionalDurationInput.textProperty().addListener((ChangeListener<? super String>) (c, o, n) -> {
             validate();
         });
-    }
 
-    @Override
-    protected void onModelSet() {
-        initialDurationInput.setText(Long.toString(model.getConfiguration().getInitialDuration().toMinutes()));
-        initialDurationInput.setText(Long.toString(model.getConfiguration().getAdditionalDuration().toSeconds()));
+        validate();
     }
 
     private boolean validateMonitorSelection() {
@@ -109,23 +100,21 @@ public class MainController extends AbstractController implements Initializable 
 
     private boolean validateDuration() {
         try {
-            int initialDuration = Integer.parseInt(initialDurationInput.getText());
-            int additionalDuration = Integer.parseInt(additionalDurationInput.getText());
-            model.getConfiguration().setInitialDuration(Duration.ofMinutes(initialDuration));
-            model.getConfiguration().setAdditionalDuration(Duration.ofSeconds(additionalDuration));
+            Integer.parseInt(initialDurationInput.getText());
+            Integer.parseInt(additionalDurationInput.getText());
         } catch (NumberFormatException e) {
             durationValidationLabel.setVisible(true);
             durationValidationLabel.setText("Durations should be integer numbers");
             return false;
         }
 
-        if (model.getConfiguration().getInitialDuration().isZero() || model.getConfiguration().getInitialDuration().isNegative()) {
+        if (model.getConfiguration().getInitialDurationMinutes() <= 0) {
             durationValidationLabel.setVisible(true);
             durationValidationLabel.setText("Initial duration should be positive");
             return false;
         }
 
-        if (model.getConfiguration().getAdditionalDuration().isNegative()) {
+        if (model.getConfiguration().getAdditionalDurationSeconds() < 0) {
             durationValidationLabel.setVisible(true);
             durationValidationLabel.setText("Additional duration cannot be negative");
             return false;
@@ -141,7 +130,6 @@ public class MainController extends AbstractController implements Initializable 
 
         var disableButtons = !(isMonitorValid && isDurationValid);
 
-        testButton.setDisable(disableButtons);
         startButton.setDisable(disableButtons);
     }
 
@@ -156,13 +144,13 @@ public class MainController extends AbstractController implements Initializable 
         }
     }
 
-    public void onTestButton(ActionEvent actionEvent) throws IOException {
+    public void onStartButton(ActionEvent actionEvent) throws IOException {
         model.createClock();
 
         var boundsW = screenMap.get(monitorSelectorW.getValue()).getBounds();
         var boundsB = screenMap.get(monitorSelectorB.getValue()).getBounds();
 
-        FXMLLoader fxmlLoaderW = new FXMLLoader(getClass().getResource("clock-view.fxml"));
+        FXMLLoader fxmlLoaderW = new FXMLLoader(getClass().getResource("/net/crejak/bcc/views/clock-view.fxml"));
         Scene sceneW = new Scene(fxmlLoaderW.load());
         sceneW.setOnKeyPressed(this::onKeyPressed);
         stageW = new Stage(StageStyle.UNDECORATED);
@@ -173,10 +161,9 @@ public class MainController extends AbstractController implements Initializable 
         stageW.setWidth(boundsW.getWidth());
         stageW.setHeight(boundsW.getHeight());
         ((ClockController) fxmlLoaderW.getController()).setColor(Color.WHITE);
-        ((ClockController) fxmlLoaderW.getController()).setModel(model);
         stageW.show();
 
-        FXMLLoader fxmlLoaderB = new FXMLLoader(getClass().getResource("clock-view.fxml"));
+        FXMLLoader fxmlLoaderB = new FXMLLoader(getClass().getResource("/net/crejak/bcc/views/clock-view.fxml"));
         Scene sceneB = new Scene(fxmlLoaderB.load());
         sceneB.setOnKeyPressed(this::onKeyPressed);
         stageB = new Stage(StageStyle.UNDECORATED);
@@ -187,14 +174,9 @@ public class MainController extends AbstractController implements Initializable 
         stageB.setWidth(boundsB.getWidth());
         stageB.setHeight(boundsB.getHeight());
         ((ClockController) fxmlLoaderB.getController()).setColor(Color.BLACK);
-        ((ClockController) fxmlLoaderB.getController()).setModel(model);
         stageB.show();
 
         ((Stage) root.getScene().getWindow()).hide();
-    }
-
-    public void onStartButton(ActionEvent actionEvent) throws IOException {
-
     }
 
     public void onKeyPressed(KeyEvent keyEvent) {
