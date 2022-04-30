@@ -1,44 +1,41 @@
 package net.crejak.bcc.model;
 
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.*;
 import javafx.concurrent.Task;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ClockModel {
-    private final BooleanProperty whiteTurn;
     private final BooleanProperty pause;
 
-    private final LongProperty remainingTimeMillisW;
+    private final Property<Color> currentColor;
+    private final Map<Color, LongProperty> remainingTimeMillis;
 
-    private final LongProperty remainingTimeMillisB;
-
-    private Task<Void> clockTask;
+    private final Task<Void> clockTask;
 
     public ClockModel(Configuration configuration) {
-        whiteTurn = new SimpleBooleanProperty(true);
+        currentColor = new SimpleObjectProperty<>(Color.WHITE);
+
         pause = new SimpleBooleanProperty(true);
 
         long initialTime = (long) configuration.getInitialDurationMinutes() * 60L * 1_000L;
-        remainingTimeMillisW = new SimpleLongProperty(initialTime);
-        remainingTimeMillisB = new SimpleLongProperty(initialTime);
+        remainingTimeMillis = new HashMap<>();
+        remainingTimeMillis.put(Color.WHITE, new SimpleLongProperty(initialTime));
+        remainingTimeMillis.put(Color.BLACK, new SimpleLongProperty(initialTime));
 
         clockTask = new Task<>() {
             @Override
             protected Void call() throws Exception {
                 var lastTime = System.currentTimeMillis();
-                while (remainingTimeMillisB.get() > 0 && remainingTimeMillisW.get() > 0) {
+                while (getRemainingTimeMillis(Color.WHITE) > 0 && getRemainingTimeMillis(Color.BLACK) > 0) {
                     var currentTime = System.currentTimeMillis();
                     if (!pause.get()) {
                         var elapsedTime = currentTime - lastTime;
                         Platform.runLater(() -> {
-                            if (whiteTurn.get()) {
-                                remainingTimeMillisW.set(remainingTimeMillisW.get() - elapsedTime);
-                            } else {
-                                remainingTimeMillisB.set(remainingTimeMillisB.get() - elapsedTime);
-                            }
+                            var remainingTimeProperty = remainingTimeMillis.get(currentColor.getValue());
+                            remainingTimeProperty.set(remainingTimeProperty.get() - elapsedTime);
                         });
                     }
                     lastTime = currentTime;
@@ -55,14 +52,6 @@ public class ClockModel {
         clockTask.cancel(true);
     }
 
-    public boolean isWhiteTurn() {
-        return whiteTurn.get();
-    }
-
-    public BooleanProperty whiteTurnProperty() {
-        return whiteTurn;
-    }
-
     public boolean isPause() {
         return pause.get();
     }
@@ -71,14 +60,27 @@ public class ClockModel {
         return pause;
     }
 
+    public Color getCurrentColor() {
+        return currentColor.getValue();
+    }
+
+    public Property<Color> currentColorProperty() {
+        return currentColor;
+    }
+
+    public void setCurrentColor(Color currentColor) {
+        this.currentColor.setValue(currentColor);
+    }
+
     public void start() {
         pause.set(false);
     }
 
     public LongProperty remainingTimeMillisProperty(Color color) {
-        return switch (color) {
-            case BLACK -> remainingTimeMillisB;
-            case WHITE -> remainingTimeMillisW;
-        };
+        return remainingTimeMillis.get(color);
+    }
+
+    public long getRemainingTimeMillis(Color color) {
+        return remainingTimeMillis.get(color).get();
     }
 }

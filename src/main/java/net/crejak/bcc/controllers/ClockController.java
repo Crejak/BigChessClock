@@ -29,18 +29,13 @@ public class ClockController extends AbstractController implements Initializable
     public void setColor(Color color) {
         this.color = color;
 
-        model.getClockModel().remainingTimeMillisProperty(color).addListener((change, oldValue, newValue) -> {
-            updateLabel((Long) newValue);
-        });
+        model.getClockModel().remainingTimeMillisProperty(color).addListener((change, oldValue, newValue) -> updateLabel((Long) newValue));
+
         updateLabel(model.getClockModel().remainingTimeMillisProperty(color).get());
 
-        model.getClockModel().pauseProperty().addListener((change, oldValue, newValue) -> {
-            updateInformationLabel();
-        });
+        model.getClockModel().pauseProperty().addListener((change, oldValue, newValue) -> updateInformationLabel());
+        model.getClockModel().currentColorProperty().addListener((change, oldValue, newValue) -> updateInformationLabel());
 
-        model.getClockModel().whiteTurnProperty().addListener((change, oldValue, newValue) -> {
-            updateInformationLabel();
-        });
         updateInformationLabel();
     }
 
@@ -55,7 +50,7 @@ public class ClockController extends AbstractController implements Initializable
         sb.append("Current screen : ")
                 .append(color)
                 .append(" | Current player : ")
-                .append((model.getClockModel().isWhiteTurn() ? Color.WHITE : Color.BLACK).name());
+                .append(model.getClockModel().getCurrentColor().name());
 
         if (model.getClockModel().isPause()) {
             sb.append(" [Timer is paused, press BACKSPACE to resume]");

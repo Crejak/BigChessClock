@@ -8,6 +8,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
@@ -52,34 +53,29 @@ public class MainController extends AbstractController implements Initializable 
 
     private Map<String, Screen> screenMap;
 
-    private Stage stageW;
-    private Stage stageB;
+    private Map<Color, Stage> stageMap;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         screenList = Screen.getScreens();
         screenSelectionList = FXCollections.observableArrayList();
         screenMap = new HashMap<>();
+        stageMap = new HashMap<>();
 
-        screenList.addListener((ListChangeListener<? super Screen>) c -> {
-            refreshScreenSelectionList();
-        });
+        screenList.addListener((ListChangeListener<? super Screen>) c -> refreshScreenSelectionList());
 
         monitorSelectorW.setItems(screenSelectionList);
         monitorSelectorB.setItems(screenSelectionList);
 
         refreshScreenSelectionList();
+        tryPreselectScreens();
 
         initialDurationInput.textProperty().bindBidirectional(
                 model.getConfiguration().initialDurationMinutesProperty().asObject(), new SafeIntegerStringConverter());
         additionalDurationInput.textProperty().bindBidirectional(
                 model.getConfiguration().additionalDurationSecondsProperty().asObject(), new SafeIntegerStringConverter());
-        initialDurationInput.textProperty().addListener((ChangeListener<? super String>) (c, o, n) -> {
-            validate();
-        });
-        additionalDurationInput.textProperty().addListener((ChangeListener<? super String>) (c, o, n) -> {
-            validate();
-        });
+        initialDurationInput.textProperty().addListener((ChangeListener<? super String>) (c, o, n) -> validate());
+        additionalDurationInput.textProperty().addListener((ChangeListener<? super String>) (c, o, n) -> validate());
 
         validate();
     }
@@ -144,56 +140,60 @@ public class MainController extends AbstractController implements Initializable 
         }
     }
 
+    private void tryPreselectScreens() {
+        if (screenSelectionList.size() >= 2) {
+            monitorSelectorW.setValue(screenSelectionList.get(0));
+            monitorSelectorB.setValue(screenSelectionList.get(1));
+        }
+    }
+
     public void onStartButton(ActionEvent actionEvent) throws IOException {
         model.createClock();
 
         var boundsW = screenMap.get(monitorSelectorW.getValue()).getBounds();
         var boundsB = screenMap.get(monitorSelectorB.getValue()).getBounds();
 
-        FXMLLoader fxmlLoaderW = new FXMLLoader(getClass().getResource("/net/crejak/bcc/views/clock-view.fxml"));
-        Scene sceneW = new Scene(fxmlLoaderW.load());
-        sceneW.setOnKeyPressed(this::onKeyPressed);
-        stageW = new Stage(StageStyle.UNDECORATED);
-        stageW.setScene(sceneW);
-        stageW.setTitle("White - clock");
-        stageW.setX(boundsW.getMinX());
-        stageW.setY(boundsW.getMinY());
-        stageW.setWidth(boundsW.getWidth());
-        stageW.setHeight(boundsW.getHeight());
-        ((ClockController) fxmlLoaderW.getController()).setColor(Color.WHITE);
-        stageW.show();
+        openClockWindow(boundsW, Color.WHITE);
+        openClockWindow(boundsB, Color.BLACK);
 
-        FXMLLoader fxmlLoaderB = new FXMLLoader(getClass().getResource("/net/crejak/bcc/views/clock-view.fxml"));
-        Scene sceneB = new Scene(fxmlLoaderB.load());
-        sceneB.setOnKeyPressed(this::onKeyPressed);
-        stageB = new Stage(StageStyle.UNDECORATED);
-        stageB.setScene(sceneB);
-        stageB.setTitle("Black - clock");
-        stageB.setY(boundsB.getMinY());
-        stageB.setX(boundsB.getMinX());
-        stageB.setWidth(boundsB.getWidth());
-        stageB.setHeight(boundsB.getHeight());
-        ((ClockController) fxmlLoaderB.getController()).setColor(Color.BLACK);
-        stageB.show();
+        (root.getScene().getWindow()).hide();
+    }
 
-        ((Stage) root.getScene().getWindow()).hide();
+    private void openClockWindow(Rectangle2D bounds, Color color) throws IOException {
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/net/crejak/bcc/views/clock-view.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
+        scene.setOnKeyPressed(this::onKeyPressed);
+        Stage stage = new Stage(StageStyle.UNDECORATED);
+        stageMap.put(color, stage);
+        stage.setScene(scene);
+        stage.setTitle(color.name() + " - Clock");
+        stage.setY(bounds.getMinY());
+        stage.setX(bounds.getMinX());
+        stage.setWidth(bounds.getWidth());
+        stage.setHeight(bounds.getHeight());
+        ((ClockController) fxmlLoader.getController()).setColor(color);
+        stage.show();
     }
 
     public void onKeyPressed(KeyEvent keyEvent) {
         switch (keyEvent.getCode()) {
             case Q -> {
-                stageW.close();
-                stageB.close();
+                stageMap.get(Color.WHITE).close();
+                stageMap.get(Color.BLACK).close();
 
                 model.disposeClock();
 
                 ((Stage) root.getScene().getWindow()).show();
             }
-            case BACK_SPACE -> {
-                model.getClockModel().start();
-            }
             case SPACE -> {
-                model.getClockModel().whiteTurnProperty().set(!model.getClockModel().isWhiteTurn());
+                if (model.getClockModel().isPause()) {
+                    model.getClockModel().start();
+                } else {
+                    model.getClockModel().setCurrentColor(switch (model.getClockModel().getCurrentColor()) {
+                        case WHITE -> Color.BLACK;
+                        case BLACK -> Color.WHITE;
+                    });
+                }
             }
         }
     }
