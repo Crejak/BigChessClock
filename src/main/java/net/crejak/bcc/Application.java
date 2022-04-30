@@ -3,8 +3,6 @@ package net.crejak.bcc;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import net.crejak.bcc.controllers.MainController;
-import net.crejak.bcc.model.Model;
 
 public class Application extends javafx.application.Application {
     @Override
